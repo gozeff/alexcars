@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="light only">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -444,7 +444,7 @@ input[type=checkbox]{accent-color:var(--accent)}
 .in.err{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.15)}
 .in.err::placeholder{color:var(--red)}
 
-.npill{display:none}.mbar{display:none}.om{display:none}.msort{display:none}.sx{display:none}
+.npill{display:none}.mbar{display:none}.om{display:none}.msort{display:none}.specm{display:none}.sx{display:none}
 .nudge.min{width:auto;padding:5px 16px 5px 5px;border-radius:999px;cursor:pointer}
 .nudge.min>*:not(.npill){display:none}
 .nudge.min .npill{display:flex;align-items:center;gap:10px;border:0;background:none;font:inherit;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;padding:0}
@@ -456,7 +456,7 @@ input[type=checkbox]{accent-color:var(--accent)}
   .quick{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-16px;margin-right:-16px;padding:0 16px 2px}.quick::-webkit-scrollbar{display:none}.quick .chip{flex:none}
   .cat .bar{position:sticky;top:72px;z-index:20;background:var(--bg);margin:0 -16px 10px;padding:8px 16px;flex-wrap:nowrap;gap:8px;border-bottom:1px solid var(--line)}
   .cat .bar .srt,.cat .bar .count{display:none}
-  .cat .bar .msort{display:block;flex:1;min-width:0;height:36px;font-size:14px}
+  .cat .bar .msort{display:block;flex:1;min-width:0;height:40px;font-size:16px}.cat .bar .fbtn{height:40px;font-size:15px}.cat .specd{display:none!important}.cat .specm{display:-webkit-box}.cpage #book,.cpage .info>.call{display:none}
   .cat .bar .fbtn{flex:none;height:36px}
   .side.open{position:fixed;inset:0;z-index:70;overflow:auto;border-radius:0;box-shadow:none;padding:16px 16px 0}
   .side h3{position:sticky;top:-16px;background:var(--card);padding:12px 0;margin:-16px 0 8px;z-index:2;display:flex;align-items:center;gap:8px}
@@ -489,7 +489,7 @@ input[type=checkbox]{accent-color:var(--accent)}
 .hlm.on{background-size:100% 100%}
 @media (prefers-reduced-motion:reduce){.hlm{transition:none;background-size:100% 100%}}
 .sent.bad{color:var(--red)}.consent.err{color:var(--red)}
-@media (max-width:640px){.hfacts span{padding:12px 10px;font-size:12px}.hfacts b{font-size:14px;white-space:nowrap}.nudge{display:none!important}.hlm{background:none;padding:0;margin:0;color:inherit}}
+@media (max-width:640px){.hfacts span{padding:12px 10px;font-size:12px}.hfacts b{font-size:14px;white-space:nowrap}.nudge{display:none!important}input,select,textarea,.in{font-size:16px!important}.side.open{height:100dvh;padding-bottom:env(safe-area-inset-bottom)}#showres{margin-bottom:env(safe-area-inset-bottom)}body{-webkit-text-size-adjust:100%}a,button{-webkit-tap-highlight-color:transparent}.hlm{background:none;padding:0;margin:0;color:inherit}}
 </style>
 </head>
 <body>
@@ -581,7 +581,7 @@ function card(c){
    <div class="ph"><img loading="lazy" src="t/${c.id}.webp" alt="${esc(c.name)}">
    ${c.origin?`<span class="tag">${esc(c.origin)}${c.delivery?" · "+c.delivery:""}</span>`:""}
    ${c.picked?`<span class="tag got">Привезли клиенту</span>`:age(c)<=7?`<span class="tag new">Новое</span>`:""}<span class="pc">${c.ph.length} фото</span></div>
-   <div class="cb"><h4>${esc(c.name)}</h4>${c.origin?`<div class="om">${esc(c.origin)}${c.delivery?" · "+c.delivery:""}</div>`:""}<div class="spec">${specLine(c)}</div>
+   <div class="cb"><h4>${esc(c.name)}</h4>${c.origin?`<div class="om">${esc(c.origin)}${c.delivery?" · "+c.delivery:""}</div>`:""}<div class="spec specd">${specLine(c)}</div><div class="spec specm">${[c.year&&c.year+" г.",km(c.km),c.vol&&c.vol.toFixed(1)+" л",c.hp&&c.hp+" л.с.",c.fuelN,c.boxN,c.driveN].filter(Boolean).join(" · ")}</div>
    <div class="prow"><div class="price">${rub(c.price)}<small>под ключ · цена на ${dmy(c.date)}</small></div><span class="go">→</span></div></div></a>`;
 }
 function openForm(t,s){document.getElementById("mt").textContent=t;document.getElementById("ms").textContent=s||"";const f=document.querySelector("#modal form");f.reset();f.querySelector(".sent").style.display="none";f.querySelector("button.btn").textContent="Отправить";f.querySelector("button.btn").disabled=false;document.getElementById("modal").classList.add("on")}
