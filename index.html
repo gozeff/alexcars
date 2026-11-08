@@ -443,6 +443,46 @@ a:hover>.swap>span:first-child,a:hover .swap>span:first-child{opacity:0}a:hover 
 input[type=checkbox]{accent-color:var(--accent)}
 .in.err{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.15)}
 .in.err::placeholder{color:var(--red)}
+
+.npill{display:none}.mbar{display:none}.om{display:none}.msort{display:none}.sx{display:none}
+.nudge.min{width:auto;padding:5px 16px 5px 5px;border-radius:999px;cursor:pointer}
+.nudge.min>*:not(.npill){display:none}
+.nudge.min .npill{display:flex;align-items:center;gap:10px;border:0;background:none;font:inherit;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;padding:0}
+.npill img{width:40px;height:40px;border-radius:50%;object-fit:cover}
+.nudge.min .npill:before{content:"";order:3;width:8px;height:8px;border-radius:50%;background:var(--red)}
+@media (max-width:640px){
+  body.lock{overflow:hidden}
+  .csub{display:none}
+  .quick{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-16px;margin-right:-16px;padding:0 16px 2px}.quick::-webkit-scrollbar{display:none}.quick .chip{flex:none}
+  .cat .bar{position:sticky;top:72px;z-index:20;background:var(--bg);margin:0 -16px 10px;padding:8px 16px;flex-wrap:nowrap;gap:8px;border-bottom:1px solid var(--line)}
+  .cat .bar .srt,.cat .bar .count{display:none}
+  .cat .bar .msort{display:block;flex:1;min-width:0;height:36px;font-size:14px}
+  .cat .bar .fbtn{flex:none;height:36px}
+  .side.open{position:fixed;inset:0;z-index:70;overflow:auto;border-radius:0;box-shadow:none;padding:16px 16px 0}
+  .side h3{position:sticky;top:-16px;background:var(--card);padding:12px 0;margin:-16px 0 8px;z-index:2;display:flex;align-items:center;gap:8px}
+  .side h3 [data-reset]{margin-left:auto}
+  .side .sx{display:grid;place-items:center;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:20px;cursor:pointer}
+  #showres{position:sticky;bottom:12px;width:100%;margin:12px 0;box-shadow:0 12px 0 var(--card),0 -12px 16px var(--card);border-radius:12px}
+  #app>section:first-child{padding-top:16px}
+  .cat .grid{grid-template-columns:1fr;gap:10px}
+  .cat .car{flex-direction:row;border-radius:14px}
+  .cat .car:hover{transform:none}
+  .cat .car .ph{width:40%;flex:none;aspect-ratio:auto;min-height:128px}
+  .cat .car .tag:not(.new):not(.got),.cat .car .pc,.cat .car .go{display:none}
+  .cat .car .tag.new,.cat .car .tag.got{left:6px;right:auto;top:6px;font-size:10px;padding:2px 7px}
+  .cat .cb{padding:10px 12px;min-width:0}
+  .cat .cb h4{font-size:15px}
+  .cat .om{display:block;font-size:12px;color:var(--ink);margin-top:2px}
+  .cat .spec{font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .cat .price{font-size:17px;padding-top:6px}
+  .cat .price small{font-size:10px}
+  .cpage .gal .main{margin:0 -16px;border-radius:0}
+  .cpage .thumbs,.cpage .gnav{display:none}
+  body:has(.mbar) {padding-bottom:76px}
+  .mbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:50;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
+  .mbar .btn{height:46px;font-size:15px;padding:0 8px}
+  body:has(.mbar) .nudge{bottom:84px}
+}
 </style>
 </head>
 <body>
@@ -472,7 +512,7 @@ input[type=checkbox]{accent-color:var(--accent)}
     </div>
   </div>
 </div></section>
-<footer><div class="wrap">Алекс Авто · Петрозаводск · демо-версия сайта</div></footer>
+<footer><div class="wrap">Алекс Авто · Петрозаводск · демо-версия сайта<br>Самозанятый Александров Александр Михайлович, ИНН 100118989078</div></footer>
 
 <div class="modal" id="bmodal"><div class="mbox">
   <button class="x" onclick="closeB()" aria-label="Закрыть">×</button>
@@ -481,7 +521,7 @@ input[type=checkbox]{accent-color:var(--accent)}
 </div></div>
 
 <div class="nudge" id="nudge" role="dialog" aria-label="Связаться">
-  <button class="x" aria-label="Закрыть" onclick="nudgeClose()">×</button>
+  <button class="x" aria-label="Закрыть" onclick="event.stopPropagation();nudgeClose()">×</button><button class="npill" onclick="nudgeOpen()"><img id="npimg" alt="">Цена на сегодня</button>
   <a class="ncar" id="ncar" href="#/"><img id="nimg" alt=""><span class="ntag">Цена на сегодня</span></a>
   <div class="nh"><img src="logo96.png" alt=""><div><b id="nt">Узнайте цену на сегодня</b><span id="ns"></span></div></div>
   <p>Посчитаем под ключ по сегодняшнему курсу и скажем, когда сможем привезти. Один звонок - и всё понятно.</p>
@@ -535,7 +575,7 @@ function card(c){
    <div class="ph"><img loading="lazy" src="t/${c.id}.webp" alt="${esc(c.name)}">
    ${c.origin?`<span class="tag">${esc(c.origin)}${c.delivery?" · "+c.delivery:""}</span>`:""}
    ${c.picked?`<span class="tag got">Привезли клиенту</span>`:age(c)<=7?`<span class="tag new">Новое</span>`:""}<span class="pc">${c.ph.length} фото</span></div>
-   <div class="cb"><h4>${esc(c.name)}</h4><div class="spec">${specLine(c)}</div>
+   <div class="cb"><h4>${esc(c.name)}</h4>${c.origin?`<div class="om">${esc(c.origin)}${c.delivery?" · "+c.delivery:""}</div>`:""}<div class="spec">${specLine(c)}</div>
    <div class="prow"><div class="price">${rub(c.price)}<small>под ключ · цена на ${dmy(c.date)}</small></div><span class="go">→</span></div></div></a>`;
 }
 function openForm(t,s){document.getElementById("mt").textContent=t;document.getElementById("ms").textContent=s||"";const f=document.querySelector("#modal form");f.reset();f.querySelector(".sent").style.display="none";f.querySelector("button").textContent="Отправить";document.getElementById("modal").classList.add("on")}
@@ -699,11 +739,11 @@ function catalog(q){
   const YRS=[...new Set(CARS.map(c=>c.year).filter(Boolean))].sort((x,y)=>x-y);
   const nf=[...q.keys()].filter(k=>!["sort","page","period"].includes(k)).length;
   app.innerHTML=`<section><div class="wrap">
-   <h2>Каталог автомобилей</h2><p class="sub">Все автомобили из канала с ${since}. Цена под ключ указана по курсу на день публикации, актуальную уточните по телефону <span style="white-space:nowrap">+7 911 430-84-18</span>.</p>
+   <h2>Каталог автомобилей</h2><p class="sub csub">Все автомобили из канала с ${since}. Цена под ключ указана по курсу на день публикации, актуальную уточните по телефону <span style="white-space:nowrap">+7 911 430-84-18</span>.</p>
    <div class="quick">${BUDGETS.map(([t,lo,hi])=>{const on=(q.get("pmin")||"")==(lo?String(lo):"")&&(q.get("pmax")||"")==(hi?String(hi):"");const cnt=inPeriod.filter(c=>c.price&&c.price>=lo&&(!hi||c.price<=hi)).length;return `<button class="chip ${on?"on":""}" data-lo="${on?"":lo}" data-hi="${on?"":hi}">${t}<small>${cnt}</small></button>`}).join("")}</div>
    <div class="cat">
     <aside class="side" id="side">
-     <h3>Фильтр <button data-reset>Сбросить</button></h3>
+     <h3>Фильтр <button data-reset>Сбросить</button><button class="sx" type="button" onclick="document.getElementById('side').classList.remove('open');document.body.classList.remove('lock')" aria-label="Закрыть">×</button></h3>
      <div class="fl"><label>Период публикации</label><select class="in" data-k="period">${PERIODS.map(([v,t])=>`<option value="${v}" ${per===v?"selected":""}>${t}</option>`).join("")}</select></div>
      ${opt("make","Марка")}
      ${q.get("make")?opt("model","Модель"):""}
@@ -720,7 +760,7 @@ function catalog(q){
     </aside>
     <div>
      <div class="bar">
-      <button class="btn line sm fbtn" onclick="document.getElementById('side').classList.toggle('open')">Фильтр${nf?" ("+nf+")":""}</button>
+      <button class="btn line sm fbtn" onclick="document.getElementById('side').classList.add('open');document.body.classList.add('lock')">Фильтр${nf?" ("+nf+")":""}</button><select class="in msort" data-k="sort">${SORTS.map(([v,t])=>`<option value="${v==="new"?"":v}" ${sort===v?"selected":""}>${t}</option>`).join("")}</select>
       <span class="count">Найдено: ${l.length}</span>
       <div class="srt"><div class="seg">${SEG.map(([v,t])=>`<button class="${sort===v?"on":""}" data-sort="${v}">${t}</button>`).join("")}</div><select class="in" data-k="sort"><option value="new">Другая сортировка</option>${SORTS.filter(([v])=>!SEG.some(x=>x[0]===v)).map(([v,t])=>`<option value="${v}" ${sort===v?"selected":""}>${t}</option>`).join("")}</select></div>
      </div>
@@ -735,7 +775,7 @@ function catalog(q){
   app.querySelectorAll("[data-sort]").forEach(b=>b.onclick=()=>go("sort",b.dataset.sort==="new"?"":b.dataset.sort));
   app.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go("page",b.dataset.page,true));
   app.querySelector("[data-reset]").onclick=()=>{location.hash="#/catalog"};
-  document.getElementById("showres").onclick=()=>{document.getElementById("side").classList.remove("open");app.querySelector(".bar").scrollIntoView({behavior:"smooth"})};
+  document.getElementById("showres").onclick=()=>{document.getElementById("side").classList.remove("open");document.body.classList.remove("lock");app.querySelector(".bar").scrollIntoView({behavior:"smooth"})};
 }
 
 let gs={n:0,ok:0,last:null};
@@ -793,11 +833,11 @@ function carPage(id){
      <div class="spec">${specLine(c)}</div>
      <div class="big">${rub(c.price)}</div><div class="spec">под ключ со всеми платежами, по курсу евро на ${dmy(c.date)}</div>
      ${fresh?`<div class="note ok">Опубликовано ${dmy(c.date)}. Цену по сегодняшнему курсу уточните по телефону <span style="white-space:nowrap">+7 911 430-84-18</span>.</div>`:`<div class="note old">Предложение от ${dmy(c.date)}. Этот автомобиль мог уже уйти - подберём такой же или похожий.</div>`}
-     <button class="btn" id="book">${act}</button>
+     <button class="btn" id="book">${act}</button><div class="mbar"><a class="btn call" href="tel:+79114308418">Позвонить</a><button class="btn" onclick="document.getElementById('book').click()">${fresh?"Забронировать":"Подобрать такой же"}</button></div>
      <a class="btn call" href="tel:+79114308418">Позвонить</a>
     </div>
    </div>
-   ${sim.length?`<div class="head2" style="margin-top:36px"><h2>Похожие автомобили</h2><p class="sub">${simSub}</p><div class="hrow"><a class="more" href="${simAll}">Посмотреть все →</a></div></div><div class="grid" style="margin-bottom:44px">${sim.map(card).join("")}</div>`:`<div style="height:40px"></div>`}
+   ${sim.length?`<div class="head2" style="margin-top:36px"><h2>Похожие автомобили</h2><p class="sub">${simSub}</p><div class="hrow"><a class="more" href="${simAll}">Посмотреть все →</a></div></div><div class="grid rail" style="margin-bottom:44px">${sim.map(card).join("")}</div>`:`<div style="height:40px"></div>`}
   </div>`;
   document.getElementById("book").onclick=()=>openForm(act,c.name+", "+rub(c.price));
   window._c=c;
@@ -818,7 +858,10 @@ function lbBg(e){if(e.target.closest("button"))return;const i=document.getElemen
     if(e.clientX>=x&&e.clientX<=x+w&&e.clientY>=y&&e.clientY<=y+h)return}
   lbClose()}
 function lbClose(){document.getElementById("lb").classList.remove("on");document.body.style.overflow=""}
-document.addEventListener("click",e=>{if(e.target.id==="gimg")lbOpen()});
+document.addEventListener("click",e=>{if(e.target.id==="gimg"&&!gSwiped)lbOpen()});
+let gx0=null,gSwiped=false;
+document.addEventListener("touchstart",e=>{gSwiped=false;gx0=e.target.id==="gimg"?e.touches[0].clientX:null},{passive:true});
+document.addEventListener("touchend",e=>{if(gx0==null)return;const dx=e.changedTouches[0].clientX-gx0;gx0=null;if(Math.abs(dx)>40&&window._c&&window._c.ph.length>1){gSwiped=true;gal(dx<0?1:-1)}});
 {let x0=null;const lb=document.getElementById("lb");lb.addEventListener("touchstart",e=>{x0=e.touches[0].clientX},{passive:true});
  lb.addEventListener("touchend",e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>50&&window._c&&window._c.ph.length>1)gal(dx<0?1:-1)})}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeForm();lbClose()}if(!window._c)return;if(e.key==="ArrowLeft")gal(-1);if(e.key==="ArrowRight")gal(1)});
@@ -924,9 +967,15 @@ function nudgeShow(){if(nudgeN>=2)return;if(document.querySelector(".modal.on"))
   const c=(window._c&&window._c.price&&!window._c.art)?window._c:(CARS.find(x=>x.id===HOT)||SHOW[0]);
   if(c){document.getElementById("nimg").src=`p/${c.id}_${String(c.ph[0]).padStart(2,"0")}.webp`;document.getElementById("ncar").href="#/car/"+c.id;
    document.getElementById("nt").textContent=c.name;document.getElementById("ns").textContent=rub(c.price)+" под ключ на "+dmy(c.date)}
-  document.getElementById("nudge").classList.add("on");nudgeN++;ss("nudgeN",nudgeN)}
+  document.getElementById("npimg").src=document.getElementById("nimg").src;document.getElementById("nudge").classList.remove("min");document.getElementById("nudge").classList.add("on");nudgeArm();nudgeN++;ss("nudgeN",nudgeN)}
+// без активности окно сворачивается в плашку в углу; клик по плашке разворачивает
+let nudgeIdle=null;
+function nudgeMin(){const n=document.getElementById("nudge");if(n.classList.contains("on"))n.classList.add("min")}
+function nudgeArm(){clearTimeout(nudgeIdle);nudgeIdle=setTimeout(nudgeMin,15000)}
+function nudgeOpen(){document.getElementById("nudge").classList.remove("min");nudgeArm()}
+{const n=document.getElementById("nudge");["pointerenter","pointerdown","focusin","touchstart"].forEach(ev=>n.addEventListener(ev,()=>{if(!n.classList.contains("min"))clearTimeout(nudgeIdle)},{passive:true}));n.addEventListener("pointerleave",()=>{if(n.classList.contains("on")&&!n.classList.contains("min"))nudgeArm()})}
 function nudgeLater(ms){clearTimeout(nudgeT);nudgeT=setTimeout(nudgeShow,ms)}
-function nudgeClose(){document.getElementById("nudge").classList.remove("on");nudgeLater(180000)}
+function nudgeClose(){clearTimeout(nudgeIdle);document.getElementById("nudge").classList.remove("on","min");nudgeLater(180000)}
 nudgeLater(35000);
 let lastP=location.hash.split("?")[0];
 window.addEventListener("hashchange",()=>{const p=location.hash.split("?")[0];route();if(p===lastP)return;lastP=p;app.classList.remove("enter");void app.offsetWidth;app.classList.add("enter")});
