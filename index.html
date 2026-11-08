@@ -488,6 +488,8 @@ input[type=checkbox]{accent-color:var(--accent)}
 .hlm{background:linear-gradient(transparent 10%,#ffe45c 10%,#ffe45c 94%,transparent 94%) no-repeat 0 0/0 100%;color:var(--ink);transition:background-size .6s ease;padding:0 2px;margin:0 -2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .hlm.on{background-size:100% 100%}
 @media (prefers-reduced-motion:reduce){.hlm{transition:none;background-size:100% 100%}}
+.sent.bad{color:var(--red)}.consent.err{color:var(--red)}
+@media (max-width:640px){.nudge{display:none!important}}
 </style>
 </head>
 <body>
@@ -541,7 +543,7 @@ input[type=checkbox]{accent-color:var(--accent)}
     <button class="btn wide">Перезвоните мне</button>
     <label class="consent"><input type="checkbox" checked> Согласен на обработку персональных данных</label>
     <a class="btn call wide" href="tel:+79114308418">Или позвонить самому</a>
-    <div class="sent">В рабочей версии заявка сразу придёт Александру в Telegram. В демо она никуда не отправляется.</div>
+    <div class="sent"></div>
   </form>
 </div></div>
 
@@ -582,7 +584,7 @@ function card(c){
    <div class="cb"><h4>${esc(c.name)}</h4>${c.origin?`<div class="om">${esc(c.origin)}${c.delivery?" · "+c.delivery:""}</div>`:""}<div class="spec">${specLine(c)}</div>
    <div class="prow"><div class="price">${rub(c.price)}<small>под ключ · цена на ${dmy(c.date)}</small></div><span class="go">→</span></div></div></a>`;
 }
-function openForm(t,s){document.getElementById("mt").textContent=t;document.getElementById("ms").textContent=s||"";const f=document.querySelector("#modal form");f.reset();f.querySelector(".sent").style.display="none";f.querySelector("button").textContent="Отправить";document.getElementById("modal").classList.add("on")}
+function openForm(t,s){document.getElementById("mt").textContent=t;document.getElementById("ms").textContent=s||"";const f=document.querySelector("#modal form");f.reset();f.querySelector(".sent").style.display="none";f.querySelector("button.btn").textContent="Отправить";f.querySelector("button.btn").disabled=false;document.getElementById("modal").classList.add("on")}
 function closeForm(){document.getElementById("modal").classList.remove("on")}
 // маска телефона: +7 (911) 222-15-13
 function telFmt(d){d=d.replace(/\D/g,"");if(/^[78]/.test(d))d=d.slice(1);if(d.length>10&&/^[78]/.test(d))d=d.slice(1);d=d.slice(0,10);
@@ -590,9 +592,21 @@ function telFmt(d){d=d.replace(/\D/g,"");if(/^[78]/.test(d))d=d.slice(1);if(d.le
 document.addEventListener("focusin",e=>{const i=e.target;if(i.type==="tel"&&!i.value)i.value="+7 ("});
 document.addEventListener("focusout",e=>{const i=e.target;if(i.type==="tel"&&i.value.replace(/\D/g,"").length<=1)i.value=""});
 document.addEventListener("input",e=>{const i=e.target;if(i.type!=="tel")return;const d=i.value.replace(/\D/g,"");i.value=telFmt(d.length?d:"7")});
-function sent(f){const ph=f.querySelector("input[type=tel]");
+// заявка уходит через посредника на Cloudflare боту Александра в Telegram
+function sent(f){const ph=f.querySelector("input[type=tel]"),btn=f.querySelector("button.btn"),msg=f.querySelector(".sent"),ok=f.querySelector(".consent input");
   if(ph&&ph.value.replace(/\D/g,"").length<11){ph.classList.add("err");ph.placeholder="Укажите номер телефона";ph.focus();ph.oninput=()=>ph.classList.remove("err");return false}
-  f.querySelector(".sent").style.display="block";f.querySelector("button").textContent="Заявка принята ✓";return false}
+  if(ok&&!ok.checked){ok.parentNode.classList.add("err");ok.onchange=()=>ok.parentNode.classList.remove("err");return false}
+  const inM=!!f.closest("#modal"),nm=f.querySelector('input[autocomplete="given-name"]');
+  const d={title:inM?document.getElementById("mt").textContent:"Не нашли нужный автомобиль?",about:inM?document.getElementById("ms").textContent:"",
+    name:nm?nm.value.trim():"",phone:ph.value,
+    picks:[...f.querySelectorAll(".tg-g")].map(g=>{const o=g.querySelector(".tgi.on");return o?g.querySelector("span").textContent+": "+o.textContent:""}).filter(Boolean),
+    url:location.href};
+  const show=(t,good)=>{msg.textContent=t;msg.classList.toggle("bad",!good);msg.style.display="block"};
+  btn.disabled=true;btn.textContent="Отправляем…";msg.style.display="none";
+  fetch("https://alexavto-zayavki.iamalexandrov.workers.dev/",{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(d)})
+   .then(r=>r.json()).then(j=>{if(!j.ok)throw 0;btn.textContent="Заявка отправлена ✓";show("Александр получил заявку и перезвонит вам.",1)})
+   .catch(()=>{btn.disabled=false;btn.textContent="Отправить ещё раз";show("Не удалось отправить. Позвоните: +7 911 430-84-18",0)});
+  return false}
 document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")closeForm()};
 
 function budgetPick(a){
@@ -623,7 +637,7 @@ function pickBlock(){
     <input class="in" type="tel" inputmode="tel" autocomplete="tel" placeholder="Ваш телефон">
     <button class="btn">Подобрать автомобиль</button>
     <label class="consent"><input type="checkbox" checked> Согласен на обработку персональных данных</label>
-    <div class="sent">В рабочей версии заявка сразу придёт Александру в Telegram. В демо она никуда не отправляется.</div>
+    <div class="sent"></div>
    </form>
    </div></div></div></section>`;
 }
@@ -969,7 +983,7 @@ function markLoaded(){markHl();app.querySelectorAll("img").forEach(i=>{if(i.comp
 let nudgeN=0,nudgeT=null;
 const ss=(k,v)=>{try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){return null}};
 nudgeN=+(ss("nudgeN")||0);
-function nudgeShow(){if(nudgeN>=2)return;if(document.querySelector(".modal.on")){nudgeLater(20000);return}
+function nudgeShow(){if(nudgeN>=2||matchMedia("(max-width:640px)").matches)return;if(document.querySelector(".modal.on")){nudgeLater(20000);return}
   const c=(window._c&&window._c.price&&!window._c.art)?window._c:(CARS.find(x=>x.id===HOT)||SHOW[0]);
   if(c){document.getElementById("nimg").src=`p/${c.id}_${String(c.ph[0]).padStart(2,"0")}.webp`;document.getElementById("ncar").href="#/car/"+c.id;
    document.getElementById("nt").textContent=c.name;document.getElementById("ns").textContent=rub(c.price)+" под ключ на "+dmy(c.date)}
