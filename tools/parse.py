@@ -8,10 +8,46 @@ ORIG = {"Герман": "Германия", "Коре": "Корея", "Бела�
         "Итали": "Италия", "Франци": "Франция", "Бельги": "Бельгия", "Швеци": "Швеция", "Литв": "Литва", "Эмират": "ОАЭ", "ОАЭ": "ОАЭ"}
 MK = re.compile(r"\b(BMW|Mercedes|Audi|Volkswagen|VW|Volvo|Skoda|Ford|Opel|Land Rover|Range Rover|Kia|Peugeot|Renault|Citroen|Toyota|MINI|Mini|Hyundai|Mazda|Honda|Nissan|Subaru|Jaguar|Porsche|Chevrolet|Suzuki|Alfa Romeo|Genesis|Fiat|Lexus|GMC|Cupra|Mitsubishi|Bentley|Lotus|Geely|Alpina|Jeep|Lada|Haval|Chery|Tesla|Infiniti|Cadillac|Dodge|Seat|Smart)\b")
 def num(s): return int(re.sub(r"\D", "", s)) if s and re.sub(r"\D", "", s) else None
+def make_of(name):
+    words = name.split()
+    make = " ".join(words[:2]) if " ".join(words[:2]).lower().replace("-", " ") in TWO else words[0]
+    return {"Range Rover": "Land Rover", "Mercedes": "Mercedes-Benz", "VW": "Volkswagen", "Mersedes": "Mercedes-Benz", "BMV": "BMW", "Mini": "MINI", "Mini-Cooper": "MINI"}.get(make, make)
+BOXW = {"автомат": "АКПП", "акпп": "АКПП", "механика": "МКПП", "мкпп": "МКПП", "робот": "Робот", "вариатор": "Вариатор", "dsg": "DSG"}
+def new_style(p, raw, t):
+    """Пост по шаблону с подписями (с 09.11): 1-я строка - название, рядом цена, ниже «Год: / Пробег: / Мотор: / Коробка: / Привод:»."""
+    lines = [EMO.sub("", x).strip() for x in raw.split("\n") if EMO.sub("", x).strip()]
+    name = re.sub(r"\s+", " ", lines[0]).strip(" -:.…·") if lines else None
+    pm = next((m for x in lines[1:4] for m in [re.search(r"(\d[\d\s.,]{5,}\d)\s*(₽|руб)", x)] if m), None)
+    if not p["photos"] or not name or not pm: return None
+    mk = MK.search(name)
+    if mk: name = name[mk.start():]
+    price = num(pm.group(1))
+    origin = next((v for k, v in ORIG.items() if re.search(r"Из\s+" + k, t)), None)
+    dl = re.search(r"[Дд]оставка\s*(\d+\s*-\s*\d+|\d+)\s*(дн|день|дней|недел)", t)
+    yr = re.search(r"Год:\s*(?:(\d{1,2})\s*/\s*)?((?:19|20)\d\d)", t)
+    mot = re.search(r"Мотор:\s*([\d.,]+)?\s*([А-Яа-яA-Za-z]+)?[\s,/]*(?:(\d+)\s*л\.?\s*с)?", t)
+    box = re.search(r"Коробка:\s*([А-Яа-яA-Za-z]+)", t)
+    drv = re.search(r"Привод:\s*(полный|передний|задний)", t, re.I)
+    km = re.search(r"Пробег:\s*([\d\s.,]+)\s*(тыс)?\.?\s*км", t)
+    kmv = num(km.group(1)) if km else None
+    if km and km.group(2): kmv = (kmv or 0) * 1000
+    return {
+        "picked": bool(re.search(r"Подобран по запросу", t, re.I)), "id": p["id"], "date": p["date"][:10] if p["date"] else None, "name": name, "make": make_of(name),
+        "price": price if price and price >= 300000 else None, "origin": origin,
+        "delivery": (dl.group(1).replace(" ", "") + (" нед." if dl.group(2).startswith("недел") else " дн.")) if dl else None,
+        "month": int(yr.group(1)) if yr and yr.group(1) else None, "year": int(yr.group(2)) if yr else None,
+        "volume": mot.group(1).replace(",", ".") if mot and mot.group(1) else None, "fuel": (mot.group(2) or "").lower() if mot and mot.group(2) else None,
+        "hp": num(mot.group(3)) if mot and mot.group(3) else None,
+        "drive": drv.group(1).lower() if drv else None, "box": BOXW.get(box.group(1).lower(), box.group(1)) if box else None,
+        "km": kmv, "photos": len(p["photos"]), "videos": p["videos"],
+    }
 cars, skipped = [], []
 for line in open(src):
     p = json.loads(line)
     raw = p["text"]; t = EMO.sub("", raw)
+    if re.search(r"^\s*Год:", t, re.M) and re.search(r"^\s*Пробег:", t, re.M):
+        c = new_style(p, raw, t)
+        (cars.append(c) if c else skipped.append(p["id"])); continue
     m = re.search(r"Цена\s*(?:в|от)?\s*:?\s*([\d][\d\s.,]*)\s*(₽|руб)", t, re.I)
     m0 = None if m else re.match(r"\s*(?:от\s*)?(\d[\d\s.,]{5,}\d)", t)
     yline = re.compile(r"^\s*(?:✔️|✔)?\s*(?:\d{1,2}\s*/\s*)?(?:19|20)\d\d\s*(?:год|г\b)")
@@ -45,9 +81,7 @@ for line in open(src):
     kmv = num(km.group(1)) if km else None
     if km and km.group(2): kmv = (kmv or 0) * 1000
     name = re.sub(r"^Мазда\b", "Mazda", name).replace("Mazda СХ", "Mazda CX")
-    words = name.split()
-    make = " ".join(words[:2]) if " ".join(words[:2]).lower().replace("-", " ") in TWO else words[0]
-    make = {"Range Rover": "Land Rover", "Mercedes": "Mercedes-Benz", "VW": "Volkswagen", "Mersedes": "Mercedes-Benz", "BMV": "BMW", "Mini": "MINI", "Mini-Cooper": "MINI"}.get(make, make)
+    make = make_of(name)
     cars.append({
         "picked": picked, "id": p["id"], "date": p["date"][:10] if p["date"] else None, "name": name, "make": make,
         "price": price, "origin": origin, "delivery": (dl.group(1).replace(" ", "") + (" нед." if dl.group(2).startswith("недел") else " дн.")) if dl else None,
