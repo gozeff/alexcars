@@ -1,5 +1,5 @@
 # Сборка сайта: data/cars.json + data/posts.jsonl + data/photos -> site/
-import json, os, re, shutil, subprocess, sys, datetime, html, urllib.request
+import json, os, re, shutil, subprocess, sys, datetime, html, time, urllib.request
 ROOT = os.environ.get("ALEX_ROOT", os.path.expanduser("~/alexcars")); D = ROOT + "/data"; S = ROOT + "/site"
 cars = json.load(open(D + "/cars.json"))
 posts = {json.loads(l)["id"]: json.loads(l) for l in open(D + "/posts.jsonl")}
@@ -7,11 +7,13 @@ thumbs_v = json.load(open(D + "/video_thumbs.json")) if os.path.exists(D + "/vid
 # фото, которого нет на диске, скачивается по ссылке из поста (на GitHub оригиналов нет, есть только готовые webp)
 URLS = {f"{D}/photos/{pid}_{i:02d}.jpg": u for pid, p in posts.items() for i, u in enumerate(p["photos"], 1)}
 def fetch(url, dst):
-    try:
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        urllib.request.urlretrieve(url, dst); return True
-    except Exception as e:
-        print("нет фото", url, e); return False
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    for i in range(4):  # Telegram иногда отвечает ошибкой 500 - повторяем
+        try:
+            urllib.request.urlretrieve(url, dst); return True
+        except Exception as e:
+            err = e; time.sleep(3 * (i + 1))
+    print("нет фото", url[:80], err); return False
 def vthumb(pid):
     """Обложка видео со страницы поста; результат запоминается в video_thumbs.json, чтобы не спрашивать повторно."""
     if str(pid) not in thumbs_v:
