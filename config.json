@@ -1,0 +1,27 @@
+{
+ "channel": "alexcars10",
+ "name1": "Алекс",
+ "name2": "Авто",
+ "city": "Петрозаводск",
+ "manager": "Александр",
+ "phone1": "+7 911 430-84-18",
+ "phone2": "+7 921 222-15-13",
+ "vk": "https://vk.ru/alexcars10",
+ "about": "Александр и Алексей, Петрозаводск.\nПодбираем и привозим автомобили\nиз Европы, Беларуси и Кореи.",
+ "domain": "avto.restdisp.ru",
+ "people": [
+  {
+   "name": "Александр",
+   "role": "Подбор и расчёт под ключ",
+   "phones": [
+    "+7 911 430-84-18"
+   ],
+   "photo": "brand/sasha.jpg"
+  }
+ ],
+ "extra_phone": "+7 921 222-15-13",
+ "hot": 7687,
+ "pick_photo": "7746_03",
+ "legal": "Самозанятый Александров Александр Михайлович, ИНН 100118989078",
+ "lead_url": "https://alexavto-zayavki.iamalexandrov.workers.dev/"
+}
