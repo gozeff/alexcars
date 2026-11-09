@@ -1,0 +1,66 @@
+# Подгрузка канала t.me/alexcars10 на сайт avto.restdisp.ru.
+# Раз в 30 минут - новые посты; раз в сутки (03:17 МСК) - весь канал, удалённые посты пропадают с сайта.
+# Исходники - ветка src, готовый сайт - ветка main. При сбое GitHub присылает письмо.
+name: Подгрузка канала
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+    - cron: "17 0 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "new - новые посты, full - весь канал, build - только пересобрать"
+        default: build
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: update
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      ALEX_ROOT: ${{ github.workspace }}/src
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: src
+          path: src
+      - name: Посты канала
+        id: posts
+        run: |
+          MODE="${{ inputs.mode }}"
+          [ "${{ github.event.schedule }}" = "17 0 * * *" ] && MODE=full
+          [ -z "$MODE" ] && MODE=new
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          if [ "$MODE" = build ]; then echo "changed=1" >> "$GITHUB_OUTPUT"; else python3 src/tools/update.py "$MODE"; fi
+      - uses: actions/checkout@v4
+        if: steps.posts.outputs.changed == '1' || steps.posts.outputs.mode == 'full'
+        with:
+          ref: main
+          path: src/site
+      - name: Сборка
+        if: steps.posts.outputs.changed == '1' || steps.posts.outputs.mode == 'full'
+        run: |
+          sudo apt-get install -y -qq webp > /dev/null
+          python3 src/tools/build.py
+      - name: Сохранить
+        if: steps.posts.outputs.changed == '1' || steps.posts.outputs.mode == 'full'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          STAMP=$(TZ=Europe/Moscow date '+%d.%m %H:%M')
+          cd src
+          git add -A data
+          git diff --cached --quiet || { git commit -qm "Посты $STAMP"; git pull -q --rebase; git push -q; }
+          cd site
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -qm "Сайт $STAMP"
+            git pull -q --rebase
+            git push -q
+            gh api -X POST "repos/${{ github.repository }}/pages/builds" > /dev/null
+          fi
