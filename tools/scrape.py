@@ -25,10 +25,11 @@ def page(before=None, ch=CH):
         videos = len(re.findall(r"tgme_widget_message_video_player", b))
         out.append({"id": int(m.group(1)), "date": dt.group(1) if dt else None, "text": text_of(b), "photos": photos, "videos": videos})
     return out
-def all_posts(ch=CH):
-    """Весь канал, от новых к старым."""
+def all_posts(ch=CH, limit=None):
+    """Весь канал от новых к старым; с limit - только столько последних постов.
+    На странице t.me/s около 20 сообщений, а каждое фото альбома - отдельное сообщение, поэтому постов на странице бывает 2."""
     seen, before, res = set(), None, []
-    while True:
+    while limit is None or len(res) < limit:
         ps = page(before, ch)
         if not ps: break
         for p in ps:

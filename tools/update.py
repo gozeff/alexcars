@@ -1,5 +1,5 @@
 # Подгрузка канала для GitHub: обновляет data/posts.jsonl.
-#   new  - первая страница канала (около 20 последних постов): новые и исправленные посты;
+#   new  - 30 последних постов канала: новые и исправленные посты;
 #   full - весь канал заново: удалённые в канале посты пропадают и с сайта.
 # Печатает changed=1, если посты изменились (для GitHub Actions пишет то же в GITHUB_OUTPUT).
 import json, os, sys
@@ -17,7 +17,7 @@ if mode == "full":
     new = {p["id"]: p for p in got}
 else:
     new = dict(old)
-    for p in scrape.page():
+    for p in scrape.all_posts(limit=30):
         new[p["id"]] = p
 changed = set(new) != set(old) or any(key(new[i]) != key(old[i]) for i in new)
 if changed:
