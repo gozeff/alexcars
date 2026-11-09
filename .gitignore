@@ -2,3 +2,4 @@ site/
 data/photos/
 data/vthumbs/
 __pycache__/
+data/cars.json
