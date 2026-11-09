@@ -46,6 +46,7 @@ jobs:
         if: steps.posts.outputs.changed == '1' || steps.posts.outputs.mode == 'full'
         run: |
           sudo apt-get install -y -qq webp > /dev/null
+          python3 src/tools/parse.py src/data/posts.jsonl src/data/cars.json
           python3 src/tools/build.py
       - name: Сохранить
         if: steps.posts.outputs.changed == '1' || steps.posts.outputs.mode == 'full'
