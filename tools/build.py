@@ -103,6 +103,6 @@ for sub in ("p", "t"):
     for f in os.listdir(f"{S}/{sub}"):
         if int(re.match(r"\d+", f).group()) not in posts: os.remove(f"{S}/{sub}/{f}")
 open(S + "/index.html", "w").write(tpl.replace("/*DATA*/null", data))
-open(S + "/robots.txt", "w").write("User-agent: *\nDisallow: /\n")
+open(S + "/robots.txt", "w").write("User-agent: *\nAllow: /\n")
 sz = subprocess.run(["du", "-sh", S], capture_output=True, text=True).stdout.split()[0]
 print(f"built: cars {len(cars)} (reposts dropped {reposts}) news {len(news)} photos {len(os.listdir(S + '/p'))} size {sz}")
