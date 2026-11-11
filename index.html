@@ -1008,5 +1008,9 @@ let lastP=location.hash.split("?")[0];
 window.addEventListener("hashchange",()=>{const p=location.hash.split("?")[0];route();if(p===lastP)return;lastP=p;app.classList.remove("enter");void app.offsetWidth;app.classList.add("enter")});
 route();
 </script>
+<script>
+// Сайт открыт в окне на imakeit.ru: Esc закрывает это окно
+if (window.parent !== window) addEventListener("keydown", function (e) { if (e.key === "Escape") parent.postMessage("imakeit:esc", "*"); });
+</script>
 </body>
 </html>
